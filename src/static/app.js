@@ -523,6 +523,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Format the schedule using the new helper function
     const formattedSchedule = formatSchedule(details);
 
+    // Share text used across all sharing options
+    const shareTitle = `Join "${name}" at Mergington High School!`;
+    const shareText = `${shareTitle} ${details.description}`;
+
     // Create activity tag
     const tagHtml = `
       <span class="activity-tag" style="background-color: ${typeInfo.color}; color: ${typeInfo.textColor}">
@@ -576,6 +580,19 @@ document.addEventListener("DOMContentLoaded", () => {
             .join("")}
         </ul>
       </div>
+      <div class="share-buttons">
+        <span class="share-label">Share:</span>
+        <a href="${`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(window.location.href)}`}"
+           target="_blank" rel="noopener noreferrer"
+           class="share-button share-twitter" title="Share on X (Twitter)" aria-label="Share on X (Twitter)">𝕏</a>
+        <a href="${`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(shareTitle)}`}"
+           target="_blank" rel="noopener noreferrer"
+           class="share-button share-facebook" title="Share on Facebook" aria-label="Share on Facebook">f</a>
+        <a href="${`https://wa.me/?text=${encodeURIComponent(`${shareText} ${window.location.href}`)}`}"
+           target="_blank" rel="noopener noreferrer"
+           class="share-button share-whatsapp" title="Share on WhatsApp" aria-label="Share on WhatsApp">💬</a>
+        <button class="share-button share-copy" title="Copy link" aria-label="Copy link to clipboard">🔗</button>
+      </div>
       <div class="activity-card-actions">
         ${
           currentUser
@@ -599,6 +616,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const deleteButtons = activityCard.querySelectorAll(".delete-participant");
     deleteButtons.forEach((button) => {
       button.addEventListener("click", handleUnregister);
+    });
+
+    // Add click handler for share copy button
+    const copyButton = activityCard.querySelector(".share-copy");
+    copyButton.addEventListener("click", () => {
+      if (navigator.share) {
+        navigator.share({ title: shareTitle, text: details.description, url: window.location.href })
+          .catch(() => {});
+      } else {
+        navigator.clipboard.writeText(`${shareText} ${window.location.href}`).then(() => {
+          copyButton.textContent = "✓";
+          copyButton.classList.add("copied");
+          setTimeout(() => {
+            copyButton.textContent = "🔗";
+            copyButton.classList.remove("copied");
+          }, 2000);
+        }).catch(() => {
+          copyButton.title = "Copy not available in this browser";
+        });
+      }
     });
 
     // Add click handler for register button (only when authenticated)
